@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Price Optimizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #62ade3, #e2ae60);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 80px;
+            min-height: 100vh;
+            animation: fadeIn 1s ease-in;
+        }
+        .container {
+            background: #ffffffcc;
+            backdrop-filter: blur(5px);
+            padding: 30px 40px;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 420px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+        h1 {
+            text-align: center;
+            color: #222;
+            font-size: 26px;
+            margin-bottom: 25px;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            color: #333;
+        }
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 20px;
+            border: 1px solid #4e3232;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        button {
+            width: 100%;
+            background: linear-gradient(to right, #007bff, #00bcd4);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.3s ease;
+        }
+        button:hover {
+            transform: scale(1.03);
+            background: linear-gradient(to right, #0056b3, #0097a7);
+        }
+        .result, .error {
+            margin-top: 25px;
+            font-size: 18px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .result { color: #2e7d32; }
+        .error { color: #c62828; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏍️ Product Price Optimizer</h1>
+    <form method="POST">
+        <label for="category">Category</label>
+        <select name="category" id="category" onchange="updateSubcategories()" required>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="sub_category">Sub-Category</label>
+        <select name="sub_category" id="sub_category" required></select>
+
+        <button type="submit">Predict Price</button>
+    </form>
+
+    {% if predicted_price %}
+        {% if predicted_price == "❌ Error: Unknown product or category." %}
+            <div class="error">{{ predicted_price }}</div>
+        {% else %}
+            <div class="result">💰 Predicted Optimal Price: ₹ {{ predicted_price }}</div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Fix: Properly embed JSON using safe filter -->
+<script type="text/javascript">
+    const categorySelect = document.getElementById('category');
+    const subCategorySelect = document.getElementById('sub_category');
+    const subCategoryMap = {{ sub_category_map_json | safe }};
+    const selectedSubCategory = "{{ selected_sub_category or '' }}";
+
+    function updateSubcategories() {
+        const selectedCategory = categorySelect.value;
+        subCategorySelect.innerHTML = '';
+        for (const [subCat, cat] of Object.entries(subCategoryMap)) {
+            if (cat === selectedCategory) {
+                const option = document.createElement('option');
+                option.value = subCat;
+                option.text = subCat;
+                if (subCat === selectedSubCategory) {
+                    option.selected = true;
+                }
+                subCategorySelect.appendChild(option);
+            }
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", updateSubcategories);
+</script>
+</body>
+</html>
